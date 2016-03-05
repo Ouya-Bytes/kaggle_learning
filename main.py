@@ -4,7 +4,7 @@ import theano.tensor as T
 import theano, Layers
 import numpy as np
 import timeit
-
+import matplotlib.pyplot as plt
 # load data
 train_x, train_y, test_x, test_y = load_data.split_data()
 train_x, train_y = load_data.shared_data(train_x, train_y)
@@ -37,22 +37,29 @@ givens_test={
         y: test_y[index * batch_size:(index + 1) * batch_size]
     }
 givens = [givens_train, givens_test]
-function = generate_function.function([index], cost, updates, givens)
+function = generate_function.function([index], [cost, acc], updates, givens)
 [train_model, test_model]= function.model
 
 def train_test(epoches):
-    train_acc = []
-    test_acc = []
+
+    cost_value = []
+    acc_vaule = []
     for epoch in xrange(epoches):
+        train_acc = []
         t1 = timeit.default_timer()
         for batch_index in xrange(train_batches):
             train_acc.append(train_model(batch_index))
         print 'epoch={}, accuracy={}, cost={}, time={}'.format(epoch,
-                                                               np.mean(np.sum(np.array(train_acc)[1])),
                                                                np.mean(np.sum(np.array(train_acc)[0])),
+                                                               np.mean(np.sum(np.array(train_acc)[1])),
                                                                timeit.default_timer() - t1
                                                                )
 
-
+        cost_value.append(np.mean(np.sum(np.array(train_acc)[0])))
+        acc_vaule.append(np.mean(np.sum(np.array(train_acc)[1])))
+    x = [i for i in xrange(epoches)]
+    plt.figure()
+    plt.scatter(x, cost_value)
+    plt.show()
 if __name__ == '__main__':
     train_test(50)
