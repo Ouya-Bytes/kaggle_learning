@@ -3,7 +3,7 @@ import load_data, LeNet, generate_function
 import theano.tensor as T
 import theano, Layers, cPickle
 import numpy as np
-import timeit
+import timeit, csv
 import matplotlib.pyplot as plt
 
 # load data
@@ -88,9 +88,17 @@ def predict():
         inputs=[conv_net.input],
         outputs=conv_net.results
     )
-    pred_value = pred_model(test_x)
-    print 'predict:{}'.format(pred_value)
-
-
+    rows, cols = test_x.shape
+    n_batches = rows/batch_size
+    pred_value = [pred_model(test_x[i*batch_size:(i+1)*batch_size].reshape((batch_size, 1, 28, 28))) for i in xrange(n_batches)]
+    result = np.concatenate(pred_value)
+    print 'predict:{}'.format(len(result))
+    with open('result.csv', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(['ImageId', 'Label'])
+        for i, item in enumerate(result):
+            writer.writerow([i+1, item])
+    print 'complete...'
 if __name__ == '__main__':
-    train_test(200)
+    train()
+    predict()
