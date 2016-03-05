@@ -15,13 +15,11 @@ def load_data(filename):
         else:
             temp = [int(item) for item in line]
             dataset += [temp]
-    return dataset
+    return np.array(dataset, dtype=np.float32)
+def label_data(dataset):
+    return dataset[:, 1:], dataset[:, 0]
 
-def split_data(path = './dataset/digit/train.csv'):
-    dataset = load_data(path)
-    dataset = np.array(dataset, dtype=np.float32)
-    X = dataset[:, 1:]
-    y = dataset[:, 0]
+def split_data(X, y):
     train_x, test_x, train_y, test_y = train_test_split(X, y, test_size=0.33, random_state=42)
     return (train_x, train_y, test_x, test_y)
 
@@ -29,3 +27,9 @@ def shared_data(X, y):
     X_shared = theano.shared(value=np.array(X, dtype=theano.config.floatX))
     y_shared = theano.shared(value=np.array(y, dtype=theano.config.floatX))
     return X_shared, T.cast(y_shared, 'int32')
+
+def train_test(train_path, test_path):
+    train_data = load_data(train_path)
+    test_data = load_data(test_path)
+    train_x, train_y = label_data(train_data)
+    return (train_x, train_y, test_data)
