@@ -100,5 +100,5 @@ def predict():
             writer.writerow([i+1, item])
     print 'complete...'
 if __name__ == '__main__':
-    train_test(20)
+    train_test(1)
     predict()

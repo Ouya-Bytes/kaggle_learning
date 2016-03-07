@@ -33,6 +33,7 @@ class LeNet:
             n_in=500,
             n_out=10
         )
+        self.results = self.softmax_layer.pred_y
         self.params = self.conv_pool_1.params + self.conv_pool_2.params + self.hidden_layer_1.params + self.softmax_layer.params
     def cost_updates(self, y, learning_rate):
         acc = self.softmax_layer.accurcy(y)
