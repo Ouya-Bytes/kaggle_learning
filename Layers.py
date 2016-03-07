@@ -64,3 +64,21 @@ class conv_pool_layer:
                                filter_shape=filter_shape)
         max_pool_out = downsample.max_pool_2d(conv_out, pool_size)
         self.outputs = T.tanh(max_pool_out + self.b.dimshuffle('x', 0, 'x', 'x'))
+
+class conv_3x3:
+    def __init__(self, input, rng, input_shape, filter_shape=(3, 3), pool_size=(2, 2)):
+        self.input = input
+        self.rng = rng
+        fan_in = np.prod(filter_shape[1:])
+        w_value = np.array(self.rng.uniform(low=-3.0 / fan_in, high=3.0 / fan_in, size=filter_shape),
+                           dtype=theano.config.floatX)
+        self.W_1 = theano.shared(value=w_value, name='c_w', borrow=True)
+        b_value = np.zeros(filter_shape[0], dtype=theano.config.floatX)
+        self.W_2 = theano.shared(value=w_value, name='c_w', borrow=True)
+        self.b = theano.shared(value=b_value, name='c_b', borrow=True)
+        self.params = [self.W_1, self.b, self.W_2]
+        conv_out_1 = conv.conv2d(self.input, self.W_1, image_shape=input_shape,
+                               filter_shape=filter_shape)
+        conv_out_2 = conv.conv2d(conv_out_1, self.W_2, image_shape=input_shape, filter_shape=filter_shape)
+        max_pool_out = downsample.max_pool_2d(conv_out_2, pool_size)
+        self.output2 = T.tanh(max_pool_out + self.b.dimshuffle('x', 0, 'x', 'x'))
