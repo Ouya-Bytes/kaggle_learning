@@ -1,7 +1,7 @@
 import theano
 
 class function:
-    def __init__(self, input, outputs, prediction, updates, givens):
+    def __init__(self, input, outputs, updates, givens):
         self.train_model = theano.function(
             inputs=input,
             outputs=outputs,

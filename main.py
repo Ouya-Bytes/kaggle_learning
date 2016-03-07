@@ -39,7 +39,7 @@ givens_valid = {
     y: valid_y[index * batch_size:(index + 1) * batch_size]
 }
 givens = [givens_train, givens_valid]
-function = generate_function.function([index], [cost, acc], conv_net.results, updates, givens)
+function = generate_function.function([index], [cost, acc], updates, givens)
 [train_model, valid_model] = function.model
 
 
@@ -100,5 +100,5 @@ def predict():
             writer.writerow([i+1, item])
     print 'complete...'
 if __name__ == '__main__':
-    train()
+    train_test(20)
     predict()
