@@ -1,10 +1,16 @@
 # coding = utf-8
-import load_data, LeNet, generate_function
-import theano.tensor as T
-import theano, Layers, cPickle
-import numpy as np
-import timeit, csv
+import csv
+import timeit
+
+import cPickle
 import matplotlib.pyplot as plt
+import numpy as np
+import theano
+import theano.tensor as T
+
+import LeNet
+import generate_function
+import load_data
 
 # load data
 train_x, train_y, test_x = load_data.train_test('./dataset/digit/train.csv', './dataset/digit/test.csv')
@@ -100,5 +106,5 @@ def predict():
             writer.writerow([i+1, item])
     print 'complete...'
 if __name__ == '__main__':
-    train_test(1)
+    train_test(100)
     predict()

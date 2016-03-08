@@ -1,8 +1,8 @@
 # coding = utf-8
+import cPickle
 import csv
 import timeit
 
-import cPickle
 import matplotlib.pyplot as plt
 import numpy as np
 import theano
@@ -32,7 +32,7 @@ conv_net = ACNN.Al_cnn(
     input=layer0_input,
     batch_size=batch_size,
     rng=rng,
-    n_kernels=[4, 6]
+    n_kernels=[6, 8]
 )
 [cost, acc, updates] = conv_net.cost_updates(y, learning_rate=learning_rate)
 # gererate model
@@ -59,7 +59,7 @@ def train_test(epoches):
         t1 = timeit.default_timer()
         train_acc = [train_model(i) for i in xrange(train_batches)]
         test_acc = [valid_model(i) for i in xrange(valid_batches)]
-        test_mean = np.mean(np.array(test_acc)[1])
+        test_mean = np.mean(np.array(test_acc)[0])
 
         print 'epoch={}, train_accuracy={}, valid_accuracy={}, cost={}, time={}'.format(epoch,
                                                                                         np.mean(
