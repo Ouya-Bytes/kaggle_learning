@@ -1,8 +1,10 @@
 # coding = utf-8
 
-import theano
 import theano.tensor as T
+
 import Layers
+
+
 class Al_cnn:
     def __init__(self, input, batch_size, rng, n_kernels):
         self.input = input
@@ -27,12 +29,12 @@ class Al_cnn:
             input=hidden_layer_input,
             rng=rng,
             n_in=n_kernels[1]*4*4,
-            n_out=500
+            n_out=192
         )
         self.softmax_layer = Layers.Logistic_layer(
             input=self.hidden_layer_1.outputs,
             rng=rng,
-            n_in=500,
+            n_in=192,
             n_out=10
         )
         self.results = self.softmax_layer.pred_y
