@@ -1,10 +1,16 @@
 # coding = utf-8
-import load_data, ACNN, generate_function
-import theano.tensor as T
-import theano, Layers, cPickle
-import numpy as np
-import timeit, csv
+import csv
+import timeit
+
+import cPickle
 import matplotlib.pyplot as plt
+import numpy as np
+import theano
+import theano.tensor as T
+
+import ACNN
+import generate_function
+import load_data
 
 # load data
 train_x, train_y, test_x = load_data.train_test('./dataset/digit/train.csv', './dataset/digit/test.csv')
@@ -46,6 +52,7 @@ function = generate_function.function([index], [cost, acc], updates, givens)
 def train_test(epoches):
     train_cost_value = []
     train_acc_value = []
+    best_acc = np.inf
     print 'training....'
     for epoch in xrange(epoches):
         train_acc = []
@@ -62,14 +69,16 @@ def train_test(epoches):
                                                                                             np.array(train_acc)[0]),
                                                                                         timeit.default_timer() - t1
                                                                                         )
+        if test_mean < best_acc:
+            best_acc = test_mean
+            with open('best_model.pkl', 'w') as f:
+                cPickle.dump(conv_net, f)
+                print 'save model...at time={}'.format(timeit.default_timer())
         train_cost_value.append(np.mean(np.array(train_acc)[0]))
         train_acc_value.append(np.mean(np.array(train_acc)[1]))
 
     valid_acc = [valid_model(i) for i in xrange(valid_batches)]
-    print 'test_accuracy = {}'.format(np.mean(np.array(valid_acc)[1]))
-    with open('best_model.pkl', 'w') as f:
-        cPickle.dump(conv_net, f)
-    print 'save model...at time={}'.format(timeit.default_timer())
+    print 'test_accuracy = {}, best_accuracy={}'.format(np.mean(np.array(valid_acc)[1]), best_acc)
     x = [i for i in xrange(epoches)]
     plt.figure()
     plt.scatter(x, train_acc_value)
