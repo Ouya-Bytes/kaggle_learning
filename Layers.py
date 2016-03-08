@@ -1,8 +1,8 @@
 # coding = utf-8
 
+import numpy as np
 import theano
 import theano.tensor as T
-import numpy as np
 import theano.tensor.nnet.conv as conv
 import theano.tensor.signal.downsample as downsample
 
@@ -14,7 +14,7 @@ class Hidden_layer:
         w_value = rng.uniform(low=-np.sqrt(6. / (n_in + n_out)), \
                               high=np.sqrt(6. / (n_in + n_out)), \
                               size=(n_in, n_out))
-        self.W = theano.shared(value=np.array(w_value,  dtype=theano.config.floatX), \
+        self.W = theano.shared(value=np.array(w_value, dtype=theano.config.floatX), \
                                name='h_w',
                                borrow=True)
         self.b = theano.shared(value=np.zeros(n_out, dtype=theano.config.floatX), \
@@ -44,10 +44,10 @@ class Logistic_layer:
     def cost(self, y):
         return -T.mean(T.log(self.outputs)[T.arange(y.shape[0]), y])
 
-
     def accurcy(self, y):
         acc = T.mean(T.neq(self.pred_y, y))
         return acc
+
 
 class conv_pool_layer:
     def __init__(self, input, rng, input_shape, filter_shape, pool_size=(2, 2)):
@@ -65,20 +65,25 @@ class conv_pool_layer:
         max_pool_out = downsample.max_pool_2d(conv_out, pool_size)
         self.outputs = T.tanh(max_pool_out + self.b.dimshuffle('x', 0, 'x', 'x'))
 
+
 class conv_3x3:
-    def __init__(self, input, rng, input_shape, filter_shape=(3, 3), pool_size=(2, 2)):
+    def __init__(self, input, rng, input_shape, filter_shape_1, filter_shape_2, pool_size=(2, 2)):
         self.input = input
         self.rng = rng
-        fan_in = np.prod(filter_shape[1:])
-        w_value = np.array(self.rng.uniform(low=-3.0 / fan_in, high=3.0 / fan_in, size=filter_shape),
+        fan_in_1 = np.prod(filter_shape_1[1:])
+        fan_in_2 = np.prod(filter_shape_2[1:])
+        w_value = np.array(self.rng.uniform(low=-3.0 / fan_in_1, high=3.0 / fan_in_1, size=filter_shape_1),
                            dtype=theano.config.floatX)
+        w_2value = np.array(self.rng.uniform(low=-3.0 / fan_in_2, high=3.0 / fan_in_2, size=filter_shape_2),
+                            dtype=theano.config.floatX)
         self.W_1 = theano.shared(value=w_value, name='c_w', borrow=True)
-        b_value = np.zeros(filter_shape[0], dtype=theano.config.floatX)
-        self.W_2 = theano.shared(value=w_value, name='c_w', borrow=True)
+        b_value = np.zeros(filter_shape_2[0], dtype=theano.config.floatX)
+        self.W_2 = theano.shared(value=w_2value, name='c_w', borrow=True)
         self.b = theano.shared(value=b_value, name='c_b', borrow=True)
         self.params = [self.W_1, self.b, self.W_2]
         conv_out_1 = conv.conv2d(self.input, self.W_1, image_shape=input_shape,
-                               filter_shape=filter_shape)
-        conv_out_2 = conv.conv2d(conv_out_1, self.W_2, image_shape=input_shape, filter_shape=filter_shape)
+                                 filter_shape=filter_shape_1)
+        # the input of conv_out_2 should
+        conv_out_2 = conv.conv2d(conv_out_1, self.W_2, filter_shape=filter_shape_2)
         max_pool_out = downsample.max_pool_2d(conv_out_2, pool_size)
-        self.output2 = T.tanh(max_pool_out + self.b.dimshuffle('x', 0, 'x', 'x'))
+        self.outputs = T.tanh(max_pool_out + self.b.dimshuffle('x', 0, 'x', 'x'))
