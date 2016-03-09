@@ -4,8 +4,7 @@ import numpy as np
 import theano
 import theano.tensor as T
 import theano.tensor.nnet.conv as conv
-import theano.tensor.signal.downsample as downsample
-
+import theano.tensor.signal.pool as pool
 
 class Hidden_layer:
     def __init__(self, input, n_in, n_out, rng):
@@ -62,7 +61,7 @@ class conv_pool_layer:
         self.params = [self.W, self.b]
         conv_out = conv.conv2d(self.input, self.W, image_shape=input_shape,
                                filter_shape=filter_shape)
-        max_pool_out = downsample.max_pool_2d(conv_out, pool_size)
+        max_pool_out = pool.pool_2d(conv_out, pool_size)
         self.outputs = T.tanh(max_pool_out + self.b.dimshuffle('x', 0, 'x', 'x'))
 
 
@@ -96,3 +95,33 @@ class conv_3x3:
         max_pool_out = conv.conv2d(conv_out_2, self.W_3, filter_shape=filter_shape_3, subsample=(2, 2))
         self.outputs = T.tanh(max_pool_out + self.b2.dimshuffle('x', 0, 'x', 'x'))
 
+
+class global_average_pool:
+    def __init__(self, input, pool_size):
+        self.input = input
+        self.outputs = pool.pool_2d(self.input, pool_size, mode='average_exc_pad')
+
+
+class network_in_network:
+    def __init__(self, inputs, rng, filter_1, mlp_1, mlp_2, mlp_3):
+        w1_value = rng.normal(size=filter_1)
+        w2_value = rng.normal(size=mlp_1)
+        w3_value = rng.normal(size=mlp_2)
+        w4_value = rng.normal(size=mlp_3)
+        b1 = np.zeros(mlp_1[0], dtype=theano.config.floatX)
+        b2 = np.zeros(mlp_2[0], dtype=theano.config.floatX)
+        b3 = np.zeros(mlp_3[0], dtype=theano.config.floatX)
+        self.inputs = inputs
+        self.w1 = theano.shared(value=np.array(w1_value, dtype=theano.config.floatX), name='w1', borrow=True)
+        self.w2 = theano.shared(value=np.array(w2_value, dtype=theano.config.floatX), name='w2', borrow=True)
+        self.w3 = theano.shared(value=np.array(w3_value, dtype=theano.config.floatX), name='w3', borrow=True)
+        self.w4 = theano.shared(value=np.array(w4_value, dtype=theano.config.floatX), name='w4', borrow=True)
+        self.b1 = theano.shared(value=b1, name='b1', borrow=True)
+        self.b2 = theano.shared(value=b2, name='b2', borrow=True)
+        self.b3 = theano.shared(value=b3, name='b3', borrow=True)
+        conv_out = conv.conv2d(self.inputs, self.w1)
+        mlp_1 = T.nnet.relu(conv.conv2d(conv_out, self.w2) + self.b1.dimshuffle('x', 0, 'x', 'x'))
+        mlp_2 = T.nnet.relu(conv.conv2d(mlp_1, self.w3) + self.b2.dimshuffle('x', 0, 'x', 'x'))
+        mlp_3 = T.nnet.relu(conv.conv2d(mlp_2, self.w4) + self.b3.dimshuffle('x', 0, 'x', 'x'))
+        self.params = [self.w1, self.w2, self.w3, self.w4, self.b1, self.b2, self.b3]
+        self.outputs = mlp_3
