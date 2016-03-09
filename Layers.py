@@ -95,3 +95,4 @@ class conv_3x3:
         # max_pool_out = downsample.max_pool_2d(conv_out_2, pool_size)
         max_pool_out = conv.conv2d(conv_out_2, self.W_3, filter_shape=filter_shape_3, subsample=(2, 2))
         self.outputs = T.tanh(max_pool_out + self.b2.dimshuffle('x', 0, 'x', 'x'))
+

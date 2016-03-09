@@ -32,7 +32,7 @@ conv_net = ACNN.Al_cnn(
     input=layer0_input,
     batch_size=batch_size,
     rng=rng,
-    n_kernels=[6, 8]
+    n_kernels=[12, 24]
 )
 [cost, acc, updates] = conv_net.cost_updates(y, learning_rate=learning_rate)
 # gererate model
@@ -82,6 +82,8 @@ def train_test(epoches):
     x = [i for i in xrange(epoches)]
     plt.figure()
     plt.scatter(x, train_acc_value)
+    plt.yticks([i * 0.1 for i in xrange(10)])
+    plt.yticks([i for i in xrange(10)])
     plt.show()
 
 def predict():
